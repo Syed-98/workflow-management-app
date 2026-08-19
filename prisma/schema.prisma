@@ -1,0 +1,212 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EXECUTIVE
+}
+
+enum ApplicationStatus {
+  NEW
+  WAITING_FOR_INFORMATION
+  IN_PROGRESS
+  UNDER_REVIEW
+  COMPLETED
+  REOPENED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum WorkItemStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum SyncStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+  DEAD_LETTER
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(EXECUTIVE)
+  teamId        String?
+  team          Team?     @relation(fields: [teamId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Applications this user is assigned to
+  assignedApplications Application[] @relation("AssignedTo")
+  // Applications created by this user
+  createdApplications  Application[] @relation("CreatedBy")
+  // Work items assigned to this user
+  assignedWorkItems    WorkItem[]    @relation("WorkItemAssignee")
+  // Work items created by this user
+  createdWorkItems     WorkItem[]    @relation("WorkItemCreator")
+  // Activity log entries by this user
+  activityLogs         ActivityLog[]
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("users")
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  managerId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members      User[]
+  applications Application[]
+
+  @@map("teams")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  phone        String?
+  company      String?
+  address      String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applications Application[]
+
+  @@map("customers")
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  title       String
+  description String?
+  status      ApplicationStatus @default(NEW)
+  priority    Priority          @default(MEDIUM)
+  customerId  String
+  customer    Customer          @relation(fields: [customerId], references: [id])
+  assignedToId String?
+  assignedTo  User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdById String
+  createdBy   User              @relation("CreatedBy", fields: [createdById], references: [id])
+  teamId      String?
+  team        Team?             @relation(fields: [teamId], references: [id])
+  version     Int               @default(1) // optimistic locking
+  completedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  workItems    WorkItem[]
+  activityLogs ActivityLog[]
+  syncJobs     SyncJob[]
+
+  @@map("applications")
+}
+
+model WorkItem {
+  id            String         @id @default(cuid())
+  title         String
+  description   String?
+  status        WorkItemStatus @default(PENDING)
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  assignedToId  String?
+  assignedTo    User?          @relation("WorkItemAssignee", fields: [assignedToId], references: [id])
+  createdById   String
+  createdBy     User           @relation("WorkItemCreator", fields: [createdById], references: [id])
+  dueDate       DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("work_items")
+}
+
+model ActivityLog {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  action        String      // e.g. "STATUS_CHANGED", "ASSIGNED", "WORK_ITEM_CREATED"
+  description   String
+  metadata      String?     // JSON blob for extra context
+  createdAt     DateTime    @default(now())
+
+  @@map("activity_logs")
+}
+
+model SyncJob {
+  id            String     @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        SyncStatus @default(PENDING)
+  idempotencyKey String    @unique // prevents duplicate sync
+  attempts      Int        @default(0)
+  maxAttempts   Int        @default(5)
+  lastError     String?
+  nextRetryAt   DateTime?
+  processedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@map("sync_jobs")
+}
