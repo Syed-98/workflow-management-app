@@ -1,6 +1,8 @@
 # WorkFlow — Customer Application & Workflow Management System
 
-A production-quality workflow management system built for the Full Stack Developer assessment. Manages customer applications through configurable workflow stages with role-based access control, work item tracking, activity history, and reliable external system synchronization.
+`WorkFlow` is a focused internal operations application for managing customer applications from intake through completion. The implementation covers customer management, application tracking, assignment, workflow enforcement, work item management, audit history, and resilient synchronization with an external system.
+
+The goal of this solution was not to maximize framework usage, but to build something clear, maintainable, and appropriate for the scope of the assessment. The design favors explicit business rules, predictable data flow, and a modest amount of infrastructure that can realistically be evolved into a production system.
 
 ---
 
@@ -36,7 +38,7 @@ cd workflow-management-app
 
 ### 2. Configure Environment Variables
 
-Copy `.env` to `.env.local` (already provided) and update values as needed:
+The repository already includes working local defaults in `.env` / `.env.local`, so no manual setup is required for local evaluation. The values below are included for clarity:
 
 ```bash
 # .env.local
@@ -46,7 +48,7 @@ NEXTAUTH_URL="http://localhost:3000"
 MOCK_EXTERNAL_SERVICE_URL="http://localhost:3000"
 ```
 
-For production, generate a strong secret:
+If you want to override them, update `.env.local`. For production, the auth secret should be replaced with a strong generated value:
 ```bash
 openssl rand -base64 32
 ```
@@ -60,14 +62,14 @@ npm install
 ### 4. Set Up the Database
 
 ```bash
-npm run db:push       # Create SQLite database from schema
-npm run db:seed       # Seed with demo users and sample data
+npm run db:push       # Create the SQLite schema
+npm run db:seed       # Seed demo users and sample business data
 ```
 
 ### 5. Run the Application
 
 ```bash
-npm run dev           # Development server at http://localhost:3000
+npm run dev           # Starts the app at http://localhost:3000
 ```
 
 ### Demo Accounts
@@ -113,12 +115,12 @@ npm run dev           # Development server at http://localhost:3000
                           └────────────────────┘
 ```
 
-### Why This Approach?
+### Why This Approach
 
-- **Next.js App Router**: Allows mixing server components (for authenticated data fetching without round-trips) and client components (for interactive UI). A single deployable unit.
-- **SQLite (dev) / PostgreSQL (prod)**: SQLite requires zero infrastructure for the assessment. The Prisma abstraction means switching to PostgreSQL is a one-line config change.
-- **NextAuth v5**: Industry-standard auth with built-in JWT session management. Credentials provider gives full control over authentication logic.
-- **Prisma**: Type-safe database access, excellent DX, supports migrations and seeding.
+- **Next.js App Router**: Keeps the frontend and backend in one deployable unit while still allowing a clean separation between server-rendered data and interactive client flows.
+- **Prisma**: Provides a strongly typed persistence layer with a schema that is easy to read, evolve, and migrate.
+- **SQLite for local assessment scope**: Keeps setup friction close to zero. For a time-boxed exercise, that is a better trade-off than introducing database infrastructure that is not essential to demonstrate product thinking or backend design.
+- **NextAuth with credentials**: Simple, explicit, and sufficient for an internal tool. It also leaves room to swap to SSO or an enterprise identity provider later without having to redesign the authorization model.
 
 ---
 
@@ -184,7 +186,13 @@ Application ──has many──► SyncJob
 
 ### Frontend ↔ Backend Communication
 
-All data fetching uses the Fetch API against Next.js Route Handlers (`/api/*`). The dashboard uses React Server Components for initial data (dashboard stats) to avoid client-side loading states for the initial paint. Interactive views (application list with filters, detail pages) are client components that fetch data directly.
+The application uses Next.js Route Handlers (`/api/*`) as its backend boundary. That keeps the surface area explicit and makes the business rules easy to trace from UI action to persistence.
+
+For rendering strategy, I used:
+- **Server components** where initial authenticated page load benefits from server-side data access
+- **Client components** where users need immediate interaction, local state, filtering, or modal workflows
+
+That split keeps the initial experience fast without over-complicating the implementation with unnecessary client-side state infrastructure.
 
 Responses follow a consistent envelope:
 ```json
@@ -194,7 +202,9 @@ Responses follow a consistent envelope:
 
 ### Workflow State Machine
 
-Defined in `lib/workflow.ts`. Valid transitions:
+Workflow rules are centralized in `lib/workflow.ts`. I deliberately kept them as explicit code rather than scattering them across UI conditions or ad hoc API checks. That makes the process easier to reason about and safer to extend.
+
+Valid transitions:
 
 ```
 NEW → WAITING_FOR_INFORMATION | IN_PROGRESS
@@ -210,11 +220,17 @@ The API enforces:
 2. The requesting user's role must be permitted for that target status
 3. The application version must match (optimistic locking)
 
-Executives cannot complete or reopen applications — only ADMIN and MANAGER roles can do so.
+Executives cannot complete or reopen applications. Those actions are reserved for `ADMIN` and `MANAGER`, which reflects the separation between day-to-day processing and supervisory approval.
 
 ### Optimistic Concurrency Control
 
-Every `PATCH` and status/assignment change requires the client to send the current `version`. If the server version differs (another user saved first), the API returns `409 Conflict` with an error asking the user to refresh. This prevents accidental overwrites without the overhead of database-level locking.
+I used optimistic concurrency control via the `version` field on `Application`. Every mutating request must include the current version. If another user updates the record first, the API returns `409 Conflict`.
+
+This is a pragmatic fit for the assessment:
+- simple to implement
+- easy to explain
+- protects against silent overwrites
+- avoids introducing locking complexity that would be disproportionate for this scope
 
 ---
 
@@ -222,7 +238,7 @@ Every `PATCH` and status/assignment change requires the client to send the curre
 
 ### Authentication
 
-NextAuth v5 with the Credentials provider. On login:
+Authentication is implemented with NextAuth v5 using the Credentials provider. On login:
 1. User record is found by email
 2. bcrypt compares the submitted password against the stored hash
 3. On success, a JWT session is created containing `id`, `role`, and `teamId`
@@ -230,12 +246,17 @@ NextAuth v5 with the Credentials provider. On login:
 
 ### Authorization Layers
 
-**Middleware** (`middleware.ts`): Redirects unauthenticated requests to `/login`.
+Authorization is enforced in layers:
 
-**API-level** (`lib/permissions.ts`):
+**Middleware** (`middleware.ts`)
+- Redirects unauthenticated users to `/login`
+
+**API-level guards** (`lib/permissions.ts`)
 - `requireAuth()`: validates the session exists
 - `requireRole(roles)`: validates the user's role is in the allowed set
 - `canAccessApplication(user, application)`: scopes application access
+
+The important design choice here is that authorization is not treated as a UI concern. The UI hides actions where appropriate, but the API remains the source of truth.
 
 **Application Access Rules:**
 | Role | Can Access |
@@ -263,7 +284,7 @@ NextAuth v5 with the Credentials provider. On login:
 
 ### When Synchronization Occurs
 
-When an application's status transitions to `COMPLETED`, the API immediately enqueues a `SyncJob` record (fire-and-forget from the request's perspective). The completion response returns to the user instantly — the sync does not block it.
+When an application transitions to `COMPLETED`, the main transaction succeeds first and a `SyncJob` is then enqueued for background processing. The user does not wait for the external dependency, and a failure in the downstream system does not roll back the business action in the core application.
 
 ### Sync Architecture
 
@@ -285,9 +306,9 @@ Application completed
 
 ### Failure Handling
 
-- **Transient failures**: Job stays PENDING, `nextRetryAt` = now + `2^attempts` minutes (capped at 1 hour)
-- **Timeout**: 10-second timeout on the external HTTP call
-- **Dead letter**: After 5 failed attempts, job moves to `DEAD_LETTER` status for manual investigation
+- **Transient failures**: the job is retried with exponential backoff using `nextRetryAt`
+- **Slow downstream responses**: external calls are capped with a 10-second timeout
+- **Persistent failures**: after 5 attempts, the job is moved to `DEAD_LETTER` so it is visible and recoverable rather than retried indefinitely
 
 ### Duplicate Prevention
 
@@ -301,7 +322,7 @@ The `idempotencyKey` field has a unique database constraint (`"sync-{application
 
 ### Production Evolution
 
-For production:
+For a production version, I would evolve this into:
 1. Replace in-process cron with a dedicated job queue (BullMQ + Redis, or AWS SQS)
 2. Add a dead-letter queue dashboard for operations team
 3. Add alerting when dead-letter count exceeds threshold
@@ -313,11 +334,11 @@ For production:
 
 ### Concurrent Updates
 
-Optimistic locking via the `version` field. Clients must send the current version; mismatches return 409. The UI displays a clear error asking the user to refresh.
+Handled with optimistic locking via the `version` field. This avoids silent overwrites and gives users a clear recovery path when another update wins the race.
 
 ### Unauthorized Actions
 
-Every API route validates the session and role. The access filter (`buildApplicationFilter`) ensures database queries only return records the user is permitted to see — no IDOR vulnerabilities.
+Every API route validates the session and role. Query scoping happens at the data access layer as well, so users do not merely lose buttons in the UI; they are prevented from retrieving unauthorized records in the first place.
 
 ### Invalid Workflow Changes
 
@@ -325,7 +346,7 @@ The `canChangeStatus` function in `lib/workflow.ts` validates transitions before
 
 ### External System Failures
 
-The sync failure is isolated from the application completion. Failures are recorded, retried with backoff, and ultimately moved to dead-letter. The application status remains COMPLETED regardless.
+The synchronization path is intentionally decoupled from the application workflow. The application can be completed successfully even if the external system is unavailable, slow, or temporarily returning errors.
 
 ### Duplicate Sync Requests
 
@@ -348,10 +369,10 @@ Unique constraint on `idempotencyKey` at the database level. The `upsert` operat
 
 | Decision | Trade-off |
 |----------|-----------|
-| SQLite (dev) | No concurrent writes, not suitable for production; trivial to swap via `DATABASE_URL` |
-| In-process sync processor | Simple to reason about; in production should be an external worker |
-| JWT sessions (no DB session store) | Stateless (can't revoke tokens instantly); acceptable for internal tools |
-| Client-side data fetching for lists | Simpler code, allows real-time filters; adds loading states compared to RSC |
+| SQLite (dev) | Minimal setup and good enough for evaluation; not the right production database for a multi-user internal system |
+| In-process sync processor | Easy to understand for the assessment; a dedicated worker/queue would be more robust in production |
+| JWT sessions | Simple and stateless; less control over immediate revocation than a database-backed session model |
+| Mixed server/client rendering | Keeps the UX responsive without over-engineering global state, but introduces two rendering patterns to manage |
 
 ---
 
@@ -383,14 +404,7 @@ Unique constraint on `idempotencyKey` at the database level. The `upsert` operat
 
 ## AI and Tools Used
 
-- **Cursor with Claude (Opus)**: Used throughout the development to scaffold the application, write boilerplate, and ensure consistent patterns. Specifically used for:
-  - Initial architecture design and technology decisions
-  - Writing repetitive API route handlers
-  - Prisma schema design review
-  - Generating seed data
-  
-- **Prisma documentation**: Referenced for schema syntax and query patterns.
-- **Next.js documentation**: Referenced for App Router patterns, Route Handlers, and middleware.
-- **NextAuth v5 documentation**: Referenced for configuration and session callbacks.
+- **Claude Code**: Used to accelerate implementation, especially repetitive scaffolding, boilerplate route handlers, and documentation refinement.
+- **Framework documentation**: Prisma, Next.js, and NextAuth documentation were referenced where version-specific behavior mattered.
 
-All architectural decisions, data modeling choices, and business logic were designed by me. AI assistance was used to accelerate implementation of patterns I already knew, not to make design decisions.
+AI was used as a development accelerator, not as a substitute for system design. The architecture, domain modeling, permission model, workflow rules, and integration approach were intentionally designed and reviewed as engineering decisions rather than generated blindly.

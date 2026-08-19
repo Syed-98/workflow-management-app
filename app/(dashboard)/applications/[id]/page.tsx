@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PageHeader, LoadingSpinner, EmptyState } from "@/components/layout/page-header";
+import { LoadingSpinner, EmptyState } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, PriorityBadge, RoleBadge } from "@/components/ui/badge";
 import { Dialog } from "@/components/ui/dialog";
@@ -16,7 +15,6 @@ import {
   ArrowLeft,
   UserCheck,
   RefreshCw,
-  CheckSquare,
   ClipboardList,
   Clock,
   ChevronRight,
@@ -91,27 +89,11 @@ interface CurrentUser {
   teamId: string | null;
 }
 
-const ACTION_ICONS: Record<string, string> = {
-  APPLICATION_CREATED: "📋",
-  APPLICATION_UPDATED: "✏️",
-  APPLICATION_ASSIGNED: "👤",
-  APPLICATION_REASSIGNED: "🔄",
-  STATUS_CHANGED: "→",
-  WORK_ITEM_CREATED: "➕",
-  WORK_ITEM_UPDATED: "✏️",
-  WORK_ITEM_COMPLETED: "✓",
-  WORK_ITEM_ASSIGNED: "👤",
-  SYNC_STARTED: "↑",
-  SYNC_COMPLETED: "✓",
-  SYNC_FAILED: "✗",
-};
-
 export default function ApplicationDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
 
   const [appId, setAppId] = useState<string>("");
@@ -137,12 +119,8 @@ export default function ApplicationDetailPage({
     params.then((p) => setAppId(p.id));
   }, [params]);
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!appId) return;
-    loadData();
-  }, [appId]);
-
-  async function loadData() {
     setLoading(true);
     try {
       const [appRes, userRes, sessionRes] = await Promise.all([
@@ -163,7 +141,11 @@ export default function ApplicationDetailPage({
     } finally {
       setLoading(false);
     }
-  }
+  }, [appId]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   async function handleStatusChange() {
     if (!application || !targetStatus) return;
@@ -278,7 +260,6 @@ export default function ApplicationDetailPage({
   const validNextStatuses = WORKFLOW_TRANSITIONS[application.status] || [];
   const isAdmin = currentUser?.role === "ADMIN";
   const isManager = currentUser?.role === "MANAGER";
-  const isExecutive = currentUser?.role === "EXECUTIVE";
   const canAssign = isAdmin || isManager;
 
   return (
