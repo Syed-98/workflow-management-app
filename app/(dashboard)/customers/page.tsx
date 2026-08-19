@@ -48,7 +48,11 @@ export default function CustomersPage() {
     <div>
       <PageHeader
         title="Customers"
-        description={`${total} total customer${total !== 1 ? "s" : ""}`}
+        description={
+          search
+            ? `${total} result${total !== 1 ? "s" : ""} for "${search}"`
+            : `${total} total customer${total !== 1 ? "s" : ""}`
+        }
         actions={
           <Link href="/customers/new">
             <Button size="sm">

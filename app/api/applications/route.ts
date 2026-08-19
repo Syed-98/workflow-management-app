@@ -5,6 +5,7 @@ import { requireAuth, buildApplicationFilter } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity";
 import { handleApiError, successResponse, errorResponse } from "@/lib/api-helpers";
 import { Role } from "@prisma/client";
+import { buildCustomerRelationSearchWhere } from "@/lib/search";
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
@@ -38,16 +39,10 @@ export async function GET(req: Request) {
       ...(customerId && { customerId }),
       ...(search && {
         OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { description: { contains: search, mode: "insensitive" as const } },
+          { title: { contains: search } },
+          { description: { contains: search } },
           {
-            customer: {
-              OR: [
-                { firstName: { contains: search, mode: "insensitive" as const } },
-                { lastName: { contains: search, mode: "insensitive" as const } },
-                { email: { contains: search, mode: "insensitive" as const } },
-              ],
-            },
+            customer: buildCustomerRelationSearchWhere(search),
           },
         ],
       }),

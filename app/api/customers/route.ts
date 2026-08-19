@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, buildApplicationFilter } from "@/lib/permissions";
+import { requireAuth } from "@/lib/permissions";
+import { buildCustomerSearchWhere } from "@/lib/search";
 import { handleApiError, successResponse, errorResponse } from "@/lib/api-helpers";
-import { Role } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 const createCustomerSchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -17,22 +16,14 @@ const createCustomerSchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const user = await requireAuth();
+    await requireAuth();
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const pageSize = Math.min(50, parseInt(searchParams.get("pageSize") || "20"));
 
-    const where = search
-      ? {
-          OR: [
-            { firstName: { contains: search, mode: "insensitive" as const } },
-            { lastName: { contains: search, mode: "insensitive" as const } },
-            { email: { contains: search, mode: "insensitive" as const } },
-            { company: { contains: search, mode: "insensitive" as const } },
-          ],
-        }
-      : {};
+    const searchFilter = search ? buildCustomerSearchWhere(search) : undefined;
+    const where = searchFilter ?? {};
 
     const [customers, total] = await Promise.all([
       prisma.customer.findMany({
