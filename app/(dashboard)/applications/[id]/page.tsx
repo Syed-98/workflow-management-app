@@ -388,7 +388,7 @@ export default function ApplicationDetailPage({
                               item.status !== "COMPLETED" &&
                               handleUpdateWorkItemStatus(item.id, "COMPLETED")
                             }
-                            className={`mt-0.5 h-4 w-4 rounded border flex-shrink-0 flex items-center justify-center transition-colors ${
+                            className={`mt-0.5 h-4 w-4 rounded border shrink-0 flex items-center justify-center transition-colors ${
                               item.status === "COMPLETED"
                                 ? "bg-green-500 border-green-500 text-white"
                                 : "border-slate-300 hover:border-slate-400"

@@ -41,7 +41,7 @@ export function Dialog({ open, onClose, title, description, children, className 
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] overflow-y-auto">
+    <div className="fixed inset-0 z-100 overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
         <div
           className="fixed inset-0 bg-slate-900/25 backdrop-blur-sm animate-fade-in"
