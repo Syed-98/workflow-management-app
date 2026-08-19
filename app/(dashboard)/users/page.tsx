@@ -82,7 +82,7 @@ export default function UsersPage() {
         }
       />
 
-      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+      <div className="glass-panel overflow-hidden">
         {loading ? (
           <LoadingSpinner />
         ) : users.length === 0 ? (

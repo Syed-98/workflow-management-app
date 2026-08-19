@@ -67,12 +67,12 @@ export default function CustomersPage() {
             placeholder="Search customers..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="h-9 w-full rounded-lg pl-9 pr-3 text-sm glass-input placeholder:text-slate-400 focus:outline-none"
           />
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+      <div className="glass-panel overflow-hidden">
         {loading ? (
           <LoadingSpinner />
         ) : customers.length === 0 ? (
@@ -99,7 +99,7 @@ export default function CustomersPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {customers.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={c.id} className="transition-colors hover:bg-white/40">
                   <td className="px-4 py-3">
                     <Link href={`/customers/${c.id}`} className="font-medium text-slate-900 hover:text-slate-600">
                       {c.firstName} {c.lastName}

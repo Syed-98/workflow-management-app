@@ -102,7 +102,7 @@ export default function ApplicationsPage() {
             placeholder="Search applications..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="h-9 w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="h-9 w-full rounded-lg pl-9 pr-3 text-sm glass-input placeholder:text-slate-400 focus:outline-none"
           />
         </div>
         <Select
@@ -120,7 +120,7 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+      <div className="glass-panel overflow-hidden">
         {loading ? (
           <LoadingSpinner />
         ) : applications.length === 0 ? (
@@ -148,7 +148,7 @@ export default function ApplicationsPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {applications.map((app) => (
-                <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                <tr key={app.id} className="transition-colors hover:bg-white/40">
                   <td className="px-4 py-3">
                     <Link
                       href={`/applications/${app.id}`}

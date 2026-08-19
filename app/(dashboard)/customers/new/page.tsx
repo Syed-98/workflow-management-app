@@ -61,7 +61,7 @@ export default function NewCustomerPage() {
   return (
     <div className="max-w-2xl">
       <PageHeader title="New Customer" description="Add a new customer to the system" />
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
+      <div className="glass-panel p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <Input label="First Name" value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} error={errors.firstName} required />

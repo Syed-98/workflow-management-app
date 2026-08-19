@@ -71,13 +71,13 @@ export default function TeamsPage() {
       {loading ? (
         <LoadingSpinner />
       ) : teams.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 bg-white">
+        <div className="glass-panel">
           <EmptyState icon={Building2} title="No teams yet" description="Create a team to group users together." />
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {teams.map((team) => (
-            <div key={team.id} className="rounded-lg border border-slate-200 bg-white p-5">
+            <div key={team.id} className="glass-panel p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-medium text-slate-900">{team.name}</h3>
                 <span className="text-xs text-slate-500">{team._count.applications} apps</span>

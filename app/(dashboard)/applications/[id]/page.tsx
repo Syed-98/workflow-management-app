@@ -327,7 +327,7 @@ export default function ApplicationDetailPage({
         {/* Main content */}
         <div className="col-span-2 space-y-4">
           {/* Tabs */}
-          <div className="border-b border-slate-200 flex gap-4">
+          <div className="border-b glass-divider flex gap-4">
             {(["details", "workitems", "activity", "sync"] as const).map((tab) => (
               <button
                 key={tab}
@@ -347,7 +347,7 @@ export default function ApplicationDetailPage({
           </div>
 
           {activeTab === "details" && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5">
+            <div className="glass-panel p-5">
               {application.description ? (
                 <p className="text-sm text-slate-700 whitespace-pre-wrap">{application.description}</p>
               ) : (
@@ -379,7 +379,7 @@ export default function ApplicationDetailPage({
                   {application.workItems.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-lg border border-slate-200 bg-white p-4"
+                      className="glass-panel p-4"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-3">
@@ -442,7 +442,7 @@ export default function ApplicationDetailPage({
           )}
 
           {activeTab === "activity" && (
-            <div className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-50">
+            <div className="glass-panel divide-y divide-slate-50">
               {application.activityLogs.length === 0 ? (
                 <EmptyState icon={Clock} title="No activity yet" />
               ) : (
@@ -465,7 +465,7 @@ export default function ApplicationDetailPage({
           )}
 
           {activeTab === "sync" && (
-            <div className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-50">
+            <div className="glass-panel divide-y divide-slate-50">
               {application.syncJobs.length === 0 ? (
                 <EmptyState title="No sync jobs" description="Sync jobs are created when an application is completed." />
               ) : (
@@ -506,7 +506,7 @@ export default function ApplicationDetailPage({
 
         {/* Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-white p-4">
+          <div className="glass-panel p-4">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Details</h3>
             <dl className="space-y-3 text-sm">
               <div>
@@ -565,7 +565,7 @@ export default function ApplicationDetailPage({
 
           {/* Work items progress */}
           {application.workItems.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <div className="glass-panel p-4">
               <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Progress</h3>
               {(() => {
                 const completed = application.workItems.filter((w) => w.status === "COMPLETED").length;

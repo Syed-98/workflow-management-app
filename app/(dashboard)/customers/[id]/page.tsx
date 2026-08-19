@@ -89,11 +89,11 @@ export default function CustomerDetailPage({
         <div className="col-span-2">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Applications</h2>
           {customer.applications.length === 0 ? (
-            <div className="rounded-lg border border-slate-200 bg-white p-8 text-center">
+            <div className="glass-panel p-8 text-center">
               <p className="text-sm text-slate-500">No applications yet.</p>
             </div>
           ) : (
-            <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+            <div className="glass-panel overflow-hidden">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-100 text-left">
@@ -126,7 +126,7 @@ export default function CustomerDetailPage({
           )}
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4 h-fit">
+        <div className="glass-panel p-4 h-fit">
           <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Contact Info</h3>
           <dl className="space-y-3 text-sm">
             <div>

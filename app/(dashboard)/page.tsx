@@ -99,7 +99,7 @@ export default async function DashboardPage() {
             <Link
               key={card.label}
               href={card.href}
-              className="rounded-lg border border-slate-200 bg-white p-5 hover:border-slate-300 transition-colors"
+              className="glass-panel glass-panel-hover p-5"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-slate-500">{card.label}</span>
@@ -112,8 +112,8 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 rounded-lg border border-slate-200 bg-white">
-          <div className="px-5 py-4 border-b border-slate-100">
+        <div className="col-span-2 glass-panel">
+          <div className="px-5 py-4 border-b glass-divider">
             <h2 className="text-sm font-semibold text-slate-900">Recent Activity</h2>
           </div>
           {stats.recentActivity.length === 0 ? (
@@ -145,28 +145,28 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white">
-          <div className="px-5 py-4 border-b border-slate-100">
+        <div className="glass-panel">
+          <div className="px-5 py-4 border-b glass-divider">
             <h2 className="text-sm font-semibold text-slate-900">Quick Actions</h2>
           </div>
           <div className="p-4 space-y-2">
             <Link
               href="/applications/new"
-              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition-all duration-200 hover:bg-white/50"
             >
               <FolderKanban size={15} className="text-slate-400" />
               New Application
             </Link>
             <Link
               href="/customers/new"
-              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition-all duration-200 hover:bg-white/50"
             >
               <UserCircle size={15} className="text-slate-400" />
               New Customer
             </Link>
             <Link
               href="/applications"
-              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition-all duration-200 hover:bg-white/50"
             >
               <Clock size={15} className="text-slate-400" />
               View All Applications

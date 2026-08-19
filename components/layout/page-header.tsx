@@ -12,7 +12,7 @@ export function PageHeader({ title, description, actions, className }: PageHeade
   return (
     <div className={cn("flex items-start justify-between mb-6", className)}>
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900">{title}</h1>
         {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -34,7 +34,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       {Icon && (
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full glass-panel">
           <Icon size={22} className="text-slate-400" />
         </div>
       )}

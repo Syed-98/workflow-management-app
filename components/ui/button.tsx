@@ -8,11 +8,16 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantClasses = {
-  default: "bg-slate-900 text-white hover:bg-slate-700",
-  secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-  destructive: "bg-red-600 text-white hover:bg-red-700",
-  ghost: "text-slate-700 hover:bg-slate-100",
-  outline: "border border-slate-300 text-slate-700 hover:bg-slate-50",
+  default:
+    "bg-slate-900/90 text-white shadow-sm hover:bg-slate-800 hover:shadow-md active:scale-[0.98]",
+  secondary:
+    "glass-panel text-slate-900 hover:bg-white/75 active:scale-[0.98]",
+  destructive:
+    "bg-red-600/95 text-white shadow-sm hover:bg-red-700 active:scale-[0.98]",
+  ghost:
+    "text-slate-700 hover:bg-white/50 active:scale-[0.98]",
+  outline:
+    "border border-white/60 bg-white/40 text-slate-700 backdrop-blur-sm hover:bg-white/60 active:scale-[0.98]",
 };
 
 const sizeClasses = {
@@ -29,8 +34,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center rounded-md font-medium transition-colors",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400",
+          "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40",
           "disabled:pointer-events-none disabled:opacity-50",
           variantClasses[variant],
           sizeClasses[size],

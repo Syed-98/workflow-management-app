@@ -11,7 +11,12 @@ export default async function DashboardLayout({
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="app-shell relative flex h-screen overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="ambient-orb ambient-orb-1" />
+        <div className="ambient-orb ambient-orb-2" />
+      </div>
+
       <Sidebar
         user={{
           name: session.user.name!,
@@ -19,8 +24,9 @@ export default async function DashboardLayout({
           role: session.user.role,
         }}
       />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 max-w-7xl mx-auto">{children}</div>
+
+      <main className="relative z-10 flex-1 overflow-y-auto">
+        <div className="page-enter p-6 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );

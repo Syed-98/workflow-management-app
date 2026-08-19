@@ -39,14 +39,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-full max-w-sm">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        <div className="ambient-orb ambient-orb-1" />
+        <div className="ambient-orb ambient-orb-2" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-sm px-4 animate-fade-in-up">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-slate-900">WorkFlow</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">WorkFlow</h1>
           <p className="mt-2 text-sm text-slate-500">Sign in to your account</p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-8">
+        <div className="glass-panel p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Email"
@@ -67,7 +72,7 @@ export default function LoginPage() {
             />
 
             {error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              <p className="text-sm text-red-700 bg-red-50/80 border border-red-200/70 rounded-lg px-3 py-2 backdrop-blur-sm">
                 {error}
               </p>
             )}
@@ -76,15 +81,6 @@ export default function LoginPage() {
               Sign in
             </Button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <p className="text-xs text-slate-500 font-medium mb-2">Demo accounts</p>
-            <div className="space-y-1 text-xs text-slate-500">
-              <p>admin@demo.com / password123</p>
-              <p>manager@demo.com / password123</p>
-              <p>exec@demo.com / password123</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

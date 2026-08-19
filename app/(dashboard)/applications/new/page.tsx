@@ -104,7 +104,7 @@ export default function NewApplicationPage() {
         description="Create a new customer application"
       />
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
+      <div className="glass-panel p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Title"
