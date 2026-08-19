@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/permissions";
+import { requireAuth, requireRole } from "@/lib/permissions";
+import { Role } from "@prisma/client";
 import { buildCustomerSearchWhere } from "@/lib/search";
 import { handleApiError, successResponse, errorResponse } from "@/lib/api-helpers";
 
@@ -49,7 +50,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const user = await requireAuth();
+    await requireRole([Role.ADMIN, Role.MANAGER]);
     const body = await req.json();
     const data = createCustomerSchema.parse(body);
 

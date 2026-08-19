@@ -46,6 +46,7 @@ DATABASE_URL="file:./dev.db"
 NEXTAUTH_SECRET="your-super-secret-key-change-in-production-min-32-chars"
 NEXTAUTH_URL="http://localhost:3000"
 MOCK_EXTERNAL_SERVICE_URL="http://localhost:3000"
+CRON_SECRET="dev-cron-secret"
 ```
 
 If you want to override them, update `.env.local`. For production, the auth secret should be replaced with a strong generated value:
@@ -313,6 +314,17 @@ Application completed
 ### Duplicate Prevention
 
 The `idempotencyKey` field has a unique database constraint (`"sync-{applicationId}"`). A second `upsert` for the same application does nothing if a job already exists. The idempotency key is also sent as `X-Idempotency-Key` header to the external service so it can deduplicate on its side.
+
+### Manual Sync Trigger (Local Development)
+
+There is no in-app scheduler in this assessment build. After completing an application, trigger the sync processor manually:
+
+```bash
+curl -X POST http://localhost:3000/api/sync/process \
+  -H "Authorization: Bearer dev-cron-secret"
+```
+
+The default secret is `dev-cron-secret` (override via `CRON_SECRET` in `.env.local`). The application detail page shows sync job status once processing runs.
 
 ### Mock External Service
 

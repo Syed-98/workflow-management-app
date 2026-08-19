@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/permissions";
-import { handleApiError, successResponse } from "@/lib/api-helpers";
+import { handleApiError, successResponse, errorResponse } from "@/lib/api-helpers";
 import { Role } from "@prisma/client";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const user = await requireAuth();
 
     if (user.role !== Role.ADMIN) {
-      return successResponse(null);
+      return errorResponse("Forbidden: insufficient permissions", 403);
     }
 
     const body = await req.json();

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/permissions";
+import { requireAuth, canAccessApplication } from "@/lib/permissions";
 import { logActivity } from "@/lib/activity";
 import { handleApiError, successResponse, errorResponse } from "@/lib/api-helpers";
 
@@ -28,6 +28,10 @@ export async function PATCH(
     });
 
     if (!workItem) return errorResponse("Work item not found", 404);
+
+    if (!canAccessApplication(user, workItem.application)) {
+      return errorResponse("You do not have access to this application", 403);
+    }
 
     const isCompleting =
       data.status === "COMPLETED" && workItem.status !== "COMPLETED";
@@ -70,8 +74,15 @@ export async function DELETE(
     const user = await requireAuth();
     const { id } = await params;
 
-    const workItem = await prisma.workItem.findUnique({ where: { id } });
+    const workItem = await prisma.workItem.findUnique({
+      where: { id },
+      include: { application: true },
+    });
     if (!workItem) return errorResponse("Work item not found", 404);
+
+    if (!canAccessApplication(user, workItem.application)) {
+      return errorResponse("You do not have access to this application", 403);
+    }
 
     await prisma.workItem.delete({ where: { id } });
 

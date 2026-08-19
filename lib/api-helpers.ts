@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { AuthError } from "@/lib/permissions";
 
 export function successResponse<T>(data: T, status = 200) {
   return NextResponse.json({ data }, { status });
@@ -17,6 +18,10 @@ export function handleApiError(error: unknown): NextResponse {
       error.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; "),
       422
     );
+  }
+
+  if (error instanceof AuthError) {
+    return errorResponse(error.message, error.statusCode);
   }
 
   if (error instanceof Error) {
